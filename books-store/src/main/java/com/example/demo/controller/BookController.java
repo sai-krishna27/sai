@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.Entity.Book;
 import com.example.demo.service.BookService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @RestController
@@ -30,6 +32,7 @@ public class BookController {
 	
 	@GetMapping("/books")
 	public List<Book> getBooks(){
+		
 		return dao.getAllBooks();
 	}
 	
@@ -49,8 +52,10 @@ public class BookController {
 	}
 	
 	@GetMapping("/book/{id}")
-	public Book getBookById(@PathVariable("id") int id) {
-		return dao.getBookById(id);
+	public String getBookById(@PathVariable("id") int id) throws JsonProcessingException {
+		ObjectMapper mapper=new ObjectMapper();
+		return mapper.writeValueAsString(dao.getBookById(id));
+		
 	}
 	
 	@PutMapping("/books")
