@@ -41,6 +41,27 @@ public class BookService {
 	public Book updateBook(Book book) {
 		return bookRepo.save(book);
 	}
+
+	public Book updateBook(String book) throws JsonMappingException, JsonProcessingException {
+		ObjectMapper mapper=new ObjectMapper();
+		JsonNode node=mapper.readTree(book);
+		Book oldBook=bookRepo.findById(node.get("id").asInt()).get();
+		Map<String,String> map=mapper.convertValue(oldBook, Map.class);
+		Map<String,String> map2=new HashMap<>();
+
+		map.entrySet().forEach(e->{
+			if(node.get(e.getKey())!=null) {
+				map2.put(e.getKey(), node.get(e.getKey()).asText());
+			}
+			else {
+				map2.put(e.getKey(),String.valueOf(e.getValue()));
+			}
+		});
+		Book newBook=mapper.convertValue(map2, Book.class);
+		
+		
+		return bookRepo.save(newBook);
+	}
 	
 	public void deleteBook(int id) {
 		bookRepo.deleteById(id);
