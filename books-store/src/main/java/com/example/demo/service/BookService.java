@@ -19,12 +19,16 @@ public class BookService {
 	@Autowired
 	BookRepo bookRepo;
 	
+	@Autowired
+	ApplicationContextFile file;
+	
 	public Book insertBook(Book book) {
 		return bookRepo.save(book);
 	}
 	
 	public List<Book> getAllBooks(){
-		return bookRepo.findAll();
+		BookRepo repo=file.getrepo();
+		return repo.findAll();
 	}
 	
 	public Book getBookById(int id) {
