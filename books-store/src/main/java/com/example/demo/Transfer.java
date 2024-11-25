@@ -39,8 +39,16 @@ public class Transfer {
 
 }
 
+
+
 /*
- * import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+
+-- disable logging --
+logging.level.org.springframework.web.reactive.function.client=OFF
+logging.level.reactor.netty.http.client=OFF
+
+
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
