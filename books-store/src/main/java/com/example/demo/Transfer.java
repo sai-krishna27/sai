@@ -121,4 +121,50 @@ public class WebClientWithInterceptors {
     }
 }
 
+log request body
+private static ExchangeFilterFunction logRequestBody() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            // Wrap the body for logging
+            ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
+                .body((outputMessage, context) -> {
+                    clientRequest.body().writeTo(outputMessage, context).subscribe(); // Forward the body to the output message
+                    System.out.println("Request Body: " + outputMessage.getBodyAsString().block()); // Log the body (only works for small bodies)
+                    return Mono.empty();
+                })
+                .build();
+
+            return Mono.just(modifiedRequest);
+        });
+        
+using ByteBuffer
+private static ExchangeFilterFunction logRequestBody() {
+        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+            // Wrap the body to log it without blocking
+            ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
+                .body((outputMessage, context) -> {
+                    return clientRequest.body()
+                        .writeTo(outputMessage, context)
+                        .doOnNext(buffer -> {
+                            // Capture and log each ByteBuffer
+                            ByteBuffer byteBuffer = buffer.asByteBuffer();
+                            String bodyString = StandardCharsets.UTF_8.decode(byteBuffer).toString();
+                            System.out.println("Request Body Chunk: " + bodyString);
+                        });
+                })
+                .build();
+
+            return Mono.just(modifiedRequest);
+        });
+
+
+ Log response details
+    private static ExchangeFilterFunction logResponse() {
+        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
+            System.out.println("Response Status Code: " + clientResponse.statusCode());
+            return clientResponse.bodyToMono(String.class)
+                .doOnNext(body -> System.out.println("Response Body: " + body))
+                .then(Mono.just(clientResponse));
+        });
+    }
+
 */
