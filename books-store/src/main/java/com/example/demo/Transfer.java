@@ -1,170 +1,47 @@
-package com.example.demo;
-
-import java.io.IOException;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.example.demo.Entity.Book;
-
-import reactor.core.publisher.Mono;
-
-public class Transfer {
-	public static void main(String[] args) throws IOException {
-		
-		//get call
-//		RestTemplate rest=new RestTemplate();
-//		ResponseEntity<String> response=rest.getForEntity("http://localhost:8088/book/1", String.class);
-//		System.out.println(response.getBody().toString());
-		
-		WebClient webClient=WebClient.builder().baseUrl("http://localhost:8088/").build();
-//		String response2=webClient.get().uri("/book/1").retrieve().bodyToMono(String.class).block();
-//		System.out.println(response2);
-		
-		HttpHeaders headers=new HttpHeaders();
-		
-		Book book=new Book("NET Core in Action","sai krishna","978-1-61729-427-3",288,2018);
-		//update using post call
-		Book updatedBook=webClient.post()
-				.uri("books")
-				.body(Mono.just(book),Book.class)
-				.headers((header)->header.addAll(headers))
-				.retrieve()
-				.bodyToMono(Book.class)
-				.block();
-		System.out.println("updated book "+updatedBook);
-		
-		
-	}
-
-}
-
-
-
-/*
-
--- disable logging --
-logging.level.org.springframework.web.reactive.function.client=OFF
-logging.level.reactor.netty.http.client=OFF
-
-
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
-import java.util.function.Consumer;
-
-public class WebClientWithInterceptors {
-    public static void main(String[] args) {
-        // Create a WebClient with interceptors
-        WebClient webClient = WebClient.builder()
-            .baseUrl("https://api.example.com")
-            .filter(logRequest()) // Add request interceptor
-            .filter(logResponse()) // Add response interceptor
-            .build();
-
-        // Example POST request
-        String response = webClient.post()
-            .uri("/endpoint")
-            .bodyValue(new MyRequestBody("value1", "value2"))
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
-
-        System.out.println("Response: " + response);
-    }
-
-    // Interceptor to log requests
-    private static ExchangeFilterFunction logRequest() {
-        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            System.out.println("Request: " + clientRequest.method() + " " + clientRequest.url());
-            clientRequest.headers().forEach((name, values) -> 
-                values.forEach(value -> System.out.println(name + ": " + value))
-            );
-            return Mono.just(clientRequest);
-        });
-    }
-
-    // Interceptor to log responses
-    private static ExchangeFilterFunction logResponse() {
-        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
-            System.out.println("Response status: " + clientResponse.statusCode());
-            return Mono.just(clientResponse);
-        });
-    }
-
-    // Request body class
-    static class MyRequestBody {
-        private String field1;
-        private String field2;
-
-        public MyRequestBody(String field1, String field2) {
-            this.field1 = field1;
-            this.field2 = field2;
-        }
-
-        public String getField1() {
-            return field1;
-        }
-
-        public void setField1(String field1) {
-            this.field1 = field1;
-        }
-
-        public String getField2() {
-            return field2;
-        }
-
-        public void setField2(String field2) {
-            this.field2 = field2;
-        }
-    }
-}
-
-log request body
-private static ExchangeFilterFunction logRequestBody() {
-        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            // Wrap the body for logging
-            ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
-                .body((outputMessage, context) -> {
-                    clientRequest.body().writeTo(outputMessage, context).subscribe(); // Forward the body to the output message
-                    System.out.println("Request Body: " + outputMessage.getBodyAsString().block()); // Log the body (only works for small bodies)
-                    return Mono.empty();
-                })
-                .build();
-
-            return Mono.just(modifiedRequest);
-        });
-        
-using ByteBuffer
-private static ExchangeFilterFunction logRequestBody() {
-        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            // Wrap the body to log it without blocking
-            ClientRequest modifiedRequest = ClientRequest.from(clientRequest)
-                .body((outputMessage, context) -> {
-                    return clientRequest.body()
-                        .writeTo(outputMessage, context)
-                        .doOnNext(buffer -> {
-                            // Capture and log each ByteBuffer
-                            ByteBuffer byteBuffer = buffer.asByteBuffer();
-                            String bodyString = StandardCharsets.UTF_8.decode(byteBuffer).toString();
-                            System.out.println("Request Body Chunk: " + bodyString);
-                        });
-                })
-                .build();
-
-            return Mono.just(modifiedRequest);
-        });
-
-
- Log response details
-    private static ExchangeFilterFunction logResponse() {
-        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
-            System.out.println("Response Status Code: " + clientResponse.statusCode());
-            return clientResponse.bodyToMono(String.class)
-                .doOnNext(body -> System.out.println("Response Body: " + body))
-                .then(Mono.just(clientResponse));
-        });
-    }
-
-*/
+//package com.example.demo;
+//
+//import java.io.IOException;
+//import java.net.http.HttpClient;
+//
+//import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+//import org.springframework.web.reactive.function.client.WebClient;
+//
+//import com.example.demo.Entity.Book;
+//
+//import reactor.netty.transport.logging.AdvancedByteBufFormat;
+//
+//public class Transfer {
+//	public static void main(String[] args) throws IOException {
+//		
+//		//get call
+////		RestTemplate rest=new RestTemplate();
+////		ResponseEntity<String> response=rest.getForEntity("http://localhost:8088/book/1", String.class);
+////		System.out.println(response.getBody().toString());
+//		
+//		HttpClient httpClient = HttpClient.create()
+//	            .wiretap("reactor.netty.http.client.HttpClient",
+//	                io.netty.handler.logging.LogLevel.INFO, // Log level: INFO
+//	                AdvancedByteBufFormat.TEXTUAL);         // Human-readable format
+//		
+//		WebClient webClient=WebClient.builder()
+//				.baseUrl("http://localhost:8088/")
+//				.clientConnector(new ReactorClientHttpConnector(httpClient))
+//	            .build();
+//		
+//		
+//		Book book=new Book("NET Core in Action","sai krishna","978-1-61729-427-3",288,2018);
+//		//update using post call
+//		Book updatedBook=webClient.post()
+//				.uri("books")
+//				//.body(Mono.just(book),Book.class)
+//				.headers((headers)->headers.add("a", ""))
+//				.retrieve()
+//				.bodyToMono(Book.class)
+//				.block();
+//		System.out.println("updated book "+updatedBook);
+//		
+//		
+//	}
+//	
+//
+//}
