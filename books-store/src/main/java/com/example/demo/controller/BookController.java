@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -19,6 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 @RestController
 @Scope(value="request")
@@ -27,9 +35,14 @@ public class BookController {
 	@Autowired
 	BookService dao;
 	
+	@Operation(summary="add new books")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200",content = @Content(schema = @Schema(implementation = Book.class),mediaType= "application/json" )),
+		@ApiResponse(responseCode = "404",content = @Content(schema = @Schema(implementation = Book.class)))
+	})
 	@PostMapping("/books")
-	public Book addBook(@RequestBody Book book) {
-		return dao.insertBook(book);
+	public ResponseEntity<Book> addBook(@RequestBody Book book) {
+		return ResponseEntity.status(HttpStatus.OK).body(dao.insertBook(book));
 	}
 	
 	@GetMapping("/books")
@@ -54,9 +67,13 @@ public class BookController {
 	}
 	
 	@GetMapping("/book/{id}")
-	public String getBookById(@PathVariable("id") int id) throws JsonProcessingException {
-		ObjectMapper mapper=new ObjectMapper();
-		return mapper.writeValueAsString(dao.getBookById(id));
+	public ResponseEntity<?> getBookById(@PathVariable("id") int id) throws Exception {
+		try {
+			return ResponseEntity.ok(dao.getBookById(id));
+		}
+		catch(Exception e) {
+			throw new Exception(""+id);
+		}
 		
 	}
 
