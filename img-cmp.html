@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Converter (6.0 cm × 2.0 cm at 300 DPI)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+    canvas {
+      display: none;
+    }
+    #output {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Image Converter</h2>
+  <p>Select an image to convert to:</p>
+  <ul>
+    <li>Size: 6.0 cm × 2.0 cm</li>
+    <li>Resolution: 300 DPI</li>
+    <li>Format: JPEG</li>
+    <li>File Size: 10 KB – 20 KB</li>
+  </ul>
+
+  <input type="file" accept="image/*" id="upload">
+  <br>
+  <button onclick="processImage()">Convert & Download</button>
+
+  <canvas id="canvas"></canvas>
+  <div id="output"></div>
+
+  <script>
+    const CM_TO_INCH = 0.393701;
+    const DPI = 300;
+    const WIDTH_CM = 6.0;
+    const HEIGHT_CM = 2.0;
+    const MIN_SIZE = 10 * 1024; // 10 KB
+    const MAX_SIZE = 20 * 1024; // 20 KB
+
+    let image = null;
+
+    document.getElementById('upload').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        image = new Image();
+        image.onload = () => {
+          document.getElementById('output').innerText = "Image loaded. Ready to convert.";
+        };
+        image.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function processImage() {
+      if (!image) {
+        alert("Please upload an image first.");
+        return;
+      }
+
+      const widthPx = Math.round(WIDTH_CM * CM_TO_INCH * DPI);
+      const heightPx = Math.round(HEIGHT_CM * CM_TO_INCH * DPI);
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = widthPx;
+      canvas.height = heightPx;
+      ctx.drawImage(image, 0, 0, widthPx, heightPx);
+
+      // Try reducing quality until file size is between 10–20 KB
+      let quality = 0.9;
+      let dataURL;
+      while (quality > 0.1) {
+        dataURL = canvas.toDataURL("image/jpeg", quality);
+        const fileSize = Math.round((dataURL.length * (3 / 4)) - 2);
+        if (fileSize >= MIN_SIZE && fileSize <= MAX_SIZE) {
+          break;
+        }
+        quality -= 0.05;
+      }
+
+      const a = document.createElement("a");
+      a.href = dataURL;
+      a.download = "converted_image.jpg";
+      a.click();
+
+      document.getElementById('output').innerText = `Conversion done. Approx size: ${(dataURL.length * (3 / 4) / 1024).toFixed(2)} KB`;
+    }
+  </script>
+</body>
+</html>
